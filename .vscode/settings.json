@@ -1,0 +1,33 @@
+{
+    "makefile.makefilePath": "Makefile",
+    "makefile.makePath": "C:\\Users\\amito\\AppData\\Local\\Microsoft\\WinGet\\Packages\\ezwinports.make_Microsoft.Winget.Source_8wekyb3d8bbwe\\bin\\make.exe",
+    "makefile.configurations": [
+        {
+            "name": "Default",
+            "makeArgs": [
+                "SHELL=cmd.exe"
+            ]
+        }
+    ],
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "${workspaceFolder}/bin",
+            "binaryPath": "${workspaceFolder}/bin/main.exe",
+            "binaryArgs": []
+        }
+    ],
+    "terminal.integrated.env.windows": {
+        "PATH": "C:\\Users\\amito\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin;C:\\Users\\amito\\AppData\\Local\\Microsoft\\WinGet\\Packages\\ezwinports.make_Microsoft.Winget.Source_8wekyb3d8bbwe\\bin;${env:PATH}"
+    },
+    "C_Cpp.default.compilerPath": "C:\\Users\\amito\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\g++.exe",
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.cStandard": "c11",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/src"
+    ],
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.ignoreCMakeListsMissing": true,
+    "cmake.configureOnOpen": false,
+    "cmake.enableAutomaticKitScan": false
+}
