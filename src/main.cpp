@@ -11,6 +11,7 @@
 #include <Shader.h>
 #include <Texture.h>
 #include <Camera.h>
+#include <ImageProcessing.h>
 
 #include <iostream>
 
@@ -38,6 +39,9 @@ unsigned int indices[] = {
 
 int main(int argc, char* argv[])
 {
+    /* Assignment 1: run the image filters and write the output files (they are written to bin/) */
+    RunAssignment("res/textures/Lenna.png");
+
     GLFWwindow* window;
 
     /* Initialize the library */
