@@ -20,19 +20,16 @@ unsigned char Clip(int value)
 
 bool SavePng(const std::string& path, const GrayImage& img)
 {
-    // TODO: stbi_write_png 
-    //the last parameter is bytes per row - how many channels does a gray image have?
     int result = stbi_write_png( path.c_str() , img.width , img.height , 1 , img.pixels.data() , img.width);
     return !(result == 0);
 }
 
 bool SaveTxt(const std::string& path, const GrayImage& img)
 {
-    // TODO: std::ofstream, numbers separated by commas, no spaces
     std::ofstream file(path);
     if (!file)
         return false;
-    for (int i = 0; i < img.pixels.size(); i++)
+    for (size_t i = 0; i < img.pixels.size(); i++)
       if(i < img.pixels.size()-1 )
          file << (int)img.pixels[i] << ",";   
       else 
@@ -63,7 +60,6 @@ GrayImage ToGrayscale(const unsigned char* rgba, int width, int height)
 
 GrayImage Halftone(const GrayImage& gray)
 {
-    // TODO: output size is 2x in each direction; thresholds and fill order are on slide 11
    GrayImage half;     
    int grayIndex;                                         
    half.width = (gray.width)*2;                                          
@@ -115,17 +111,46 @@ GrayImage Halftone(const GrayImage& gray)
 
 GrayImage FloydSteinberg(const GrayImage& gray)
 {
-    // TODO: which data type can hold the value after adding a negative or >255 error?
-    //       missing neighbours at the edges: split the error equally between the existing ones
-    return {};
+   GrayImage FS;
+   FS.width = gray.width;                                          
+   FS.height = gray.height; 
+   FS.pixels = std::vector<unsigned char>(gray.width * gray.height);  
+    std::vector<float> tmp(gray.pixels.size());
+   for (size_t i = 0; i < tmp.size(); i++)
+       tmp[i] = gray.pixels[i];
+   for (int row = 0; row < gray.height; row++)
+    for (int col = 0; col < gray.width; col++){
+        float level = Clip(tmp[row * gray.width + col]) / 16;
+        FS.pixels[row * gray.width + col] = 16 * (int)level;
+        bool hasRight = col < gray.width - 1;
+        bool hasDown = row < gray.height - 1;
+        bool hasDownLeft = hasDown && col > 0;
+        bool hasDownRight = hasDown && hasRight;
+        int count = hasRight + hasDownLeft + hasDown + hasDownRight;
+        if (count == 4) {
+        tmp[(row * gray.width + col) +1] += (Clip(tmp[row * gray.width + col]) % 16) * (7.0f/16);
+        tmp[(row * gray.width + col) + gray.width - 1] += (Clip(tmp[row * gray.width + col]) % 16) * (3.0f/16);
+        tmp[(row * gray.width + col) + gray.width] += (Clip(tmp[row * gray.width + col]) % 16) * (5.0f/16);
+        tmp[(row * gray.width + col) + gray.width + 1] += (Clip(tmp[row * gray.width + col]) % 16) * (1.0f/16);
+        }
+        else if (count > 0) {
+            float share = (Clip(tmp[row * gray.width + col]) % 16) / (float)count;
+            if (hasRight)
+                tmp[(row * gray.width + col) +1] += share;
+            if (hasDownLeft)
+                tmp[(row * gray.width + col) + gray.width - 1] += share;
+            if (hasDown)
+                tmp[(row * gray.width + col) + gray.width] += share;
+            if (hasDownRight)
+                tmp[(row * gray.width + col) + gray.width + 1] += share;
+        }
+    } 
+    return FS;      
 }
-
 /* ---------- Runs everything ---------- */
 
 void RunAssignment(const std::string& inputPath)
 {
-    // TODO (task 1): load the input with stbi_load (ask for 4 channels), check it is not nullptr,
-    //                and free it with stbi_image_free when you are done
     int width, height, channels;
     unsigned char* rgba = stbi_load(inputPath.c_str(), &width, &height, &channels, 4);
     if (rgba == nullptr) {
@@ -133,7 +158,6 @@ void RunAssignment(const std::string& inputPath)
         return;
     }   
     std::cout << width << " " << height << " " << channels << std::endl;
-    // Task 2: Grayscale. The .txt keeps the raw 0-255 values (the assignment text is ambiguous: 0-15 or 0-255)
     GrayImage gray = ToGrayscale(rgba, width, height);
     if (!SavePng("../Grayscale.png", gray))
         std::cout << "Failed to save Grayscale.png" << std::endl;
@@ -147,11 +171,17 @@ void RunAssignment(const std::string& inputPath)
         halfTxt.pixels[i] = halfTxt.pixels[i] / 255;            
     if (!SaveTxt("../Halftone.txt", halfTxt))                  
         std::cout << "Failed to save Halftone.txt" << std::endl;
-    // TODO (task 3): Halftone        -> Haftone.png         + Halftone.txt         (values 0-1 in the .txt)
-    // TODO (task 4): FloydSteinberg  -> FloyedSteinberg.png + FloyedSteinberg.txt  (values 0-15 in the .txt)
+     GrayImage FS = FloydSteinberg(gray);
+    if (!SavePng("../FloyedSteinberg.png", FS))
+        std::cout << "Failed to save FloyedSteinberg.png" << std::endl;
+    GrayImage FSTxt = FS;                                   
+    for (size_t i = 0; i <FSTxt.pixels.size(); i++)          
+        FSTxt.pixels[i] = FSTxt.pixels[i] / 16;            
+    if (!SaveTxt("../FloyedSteinberg.txt", FSTxt))                  
+        std::cout << "Failed to save FloyedSteinberg.txt" << std::endl;
     // TODO (task 6): Canny           -> Canny.png           + Canny.txt            (values 0-1 in the .txt)
     //
     // File names are exactly as written in the assignment ("Haftone.png" is spelled that way there).
-    // Relative paths are written to bin/, because the program runs from there.
+    // The program runs from bin/, so "../" writes the files to the project folder.
      stbi_image_free(rgba);
 }
