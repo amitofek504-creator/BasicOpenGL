@@ -93,8 +93,11 @@ int main(int argc, char* argv[])
         va.AddBuffer(vb, layout);
 
         /* Create texture */
-        Texture texture("res/textures/white.png");
-        texture.Bind();
+         Texture grayTex("../Grayscale.png");
+        Texture cannyTex("../Grayscale.png");        // זמני, עד ש-Canny תהיה מוכנה
+        Texture halfTex("../Haftone.png");
+        Texture fsTex("../FloyedSteinberg.png");
+        grayTex.Bind();
          
         /* Create shaders */
         Shader shader("res/shaders/basic.shader");
@@ -127,7 +130,7 @@ int main(int argc, char* argv[])
             glm::vec4 color = glm::vec4(1.0, 1.0f, 1.0f, 1.0f);
 
              /* Initialize the model Translate, Rotate and Scale matrices */
-            glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+            glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5, 0.5, -1.0f));
             glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f));
             glm::mat4 scl = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
@@ -144,8 +147,35 @@ int main(int argc, char* argv[])
             shader.SetUniform1i("u_Texture", 0);
             va.Bind();
             ib.Bind();
+
+            /* Top-left: Grayscale */
+            grayTex.Bind();
             GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
 
+            /* Top-right: Canny */
+            cannyTex.Bind();
+            trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, -1.0f));
+            model = trans * rot * scl;
+            mvp = proj * view * model;
+            shader.SetUniformMat4f("u_MVP", mvp);
+            GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
+
+            /* Bottom-left: Halftone */
+            halfTex.Bind();
+            trans = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, -0.5f, -1.0f));
+            model = trans * rot * scl;
+            mvp = proj * view * model;
+            shader.SetUniformMat4f("u_MVP", mvp);
+            GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
+
+            /* Bottom-right: Floyd-Steinberg */
+            fsTex.Bind();
+            trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, -0.5f, -1.0f));
+            model = trans * rot * scl;
+            mvp = proj * view * model;
+            shader.SetUniformMat4f("u_MVP", mvp);
+            GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
+            
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
 

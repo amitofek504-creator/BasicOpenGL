@@ -32,5 +32,5 @@ void main()
 {
 	vec4 texColor = texture(u_Texture, v_TexCoord) * u_Color;
 	// gl_FragColor = texColor * v_Color;  // Deprecated
-	FragColor = texColor * v_Color;
+	FragColor = texColor;
 }
