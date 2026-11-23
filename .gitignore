@@ -5,3 +5,12 @@ bin/*
 !.vscode/launch.json
 !.vscode/settings.json
 !.vscode/extensions.json
+
+# Output files created by the program in the project folder
+/*.png
+/*.txt
+
+# Course material (not ours to publish) and Office lock files
+/*.pdf
+/*.pptx
+~$*
