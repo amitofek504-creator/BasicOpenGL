@@ -120,7 +120,30 @@ static GrayImage Hysteresis(const GrayImage& thresholded)
                         thresholded.pixels[down * thresholded.width + left ] == 255 ||
                         thresholded.pixels[down * thresholded.width + col  ] == 255 ||
                         thresholded.pixels[down * thresholded.width + right] == 255)
-                        hysteresis.pixels[row * thresholded.width + col] = 255;         
+                        hysteresis.pixels[row * thresholded.width + col] = 255;
+    }
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (int row = 0; row < thresholded.height; row++)
+             for (int col = 0; col < thresholded.width; col++){
+                int up    = std::max(row - 1, 0);
+                int down  = std::min(row + 1, thresholded.height - 1);
+                int left  = std::max(col - 1, 0);
+                int right = std::min(col + 1, thresholded.width - 1);
+                if (thresholded.pixels[row * thresholded.width + col] == 128 && hysteresis.pixels[row * thresholded.width + col] == 0)
+                        if (hysteresis.pixels[up   * thresholded.width + left ] == 255 ||
+                            hysteresis.pixels[up   * thresholded.width + col  ] == 255 ||
+                            hysteresis.pixels[up   * thresholded.width + right] == 255 ||
+                            hysteresis.pixels[row  * thresholded.width + left ] == 255 ||
+                            hysteresis.pixels[row  * thresholded.width + right] == 255 ||
+                            hysteresis.pixels[down * thresholded.width + left ] == 255 ||
+                            hysteresis.pixels[down * thresholded.width + col  ] == 255 ||
+                            hysteresis.pixels[down * thresholded.width + right] == 255) {
+                            hysteresis.pixels[row * thresholded.width + col] = 255;
+                            changed = true;
+                        }
+        }
     }
     return hysteresis;
 }
