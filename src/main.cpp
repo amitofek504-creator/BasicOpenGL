@@ -39,7 +39,7 @@ unsigned int indices[] = {
 
 int main(int argc, char* argv[])
 {
-    /* Assignment 1: run the image filters and write the output files (they are written to bin/) */
+    // קודם כל מריצים את כל העיבוד על התמונה של לנה, וכל התוצאות (png ו-txt) נשמרות בתיקיית הפרויקט
     RunAssignment("res/textures/Lenna.png");
 
     GLFWwindow* window;
@@ -93,8 +93,10 @@ int main(int argc, char* argv[])
         va.AddBuffer(vb, layout);
 
         /* Create texture */
+        // טוענים את 4 התמונות שיצאו מהעיבוד, כל אחת תוצג ברבע אחר של החלון
+        // התוכנה רצה מתוך bin, ולכן הנתיב מתחיל ב-"../" (התמונות נשמרו תיקייה אחת למעלה)
          Texture grayTex("../Grayscale.png");
-        Texture cannyTex("../Grayscale.png");        // זמני, עד ש-Canny תהיה מוכנה
+        Texture cannyTex("../Canny.png");
         Texture halfTex("../Haftone.png");
         Texture fsTex("../FloyedSteinberg.png");
         grayTex.Bind();
@@ -130,6 +132,8 @@ int main(int argc, char* argv[])
             glm::vec4 color = glm::vec4(1.0, 1.0f, 1.0f, 1.0f);
 
              /* Initialize the model Translate, Rotate and Scale matrices */
+            // הריבוע ברוחב 1 והחלון ברוחב 2, אז הזזה של חצי לכל כיוון שמה את התמונה בדיוק באמצע של רבע
+            // ההזזה הראשונה היא שמאלה ולמעלה, כלומר לרבע של ה-Grayscale
             glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5, 0.5, -1.0f));
             glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f));
             glm::mat4 scl = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
@@ -148,11 +152,12 @@ int main(int argc, char* argv[])
             va.Bind();
             ib.Bind();
 
-            /* Top-left: Grayscale */
+            // למעלה משמאל: Grayscale (המיקום כבר נקבע למעלה ב-trans)
             grayTex.Bind();
             GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
 
-            /* Top-right: Canny */
+            // למעלה מימין: Canny
+            // בכל רבע אותו דבר: בוחרים תמונה, מזיזים את הריבוע למקום שלו, מעדכנים את ה-MVP ומציירים
             cannyTex.Bind();
             trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, -1.0f));
             model = trans * rot * scl;
@@ -160,7 +165,7 @@ int main(int argc, char* argv[])
             shader.SetUniformMat4f("u_MVP", mvp);
             GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
 
-            /* Bottom-left: Halftone */
+            // למטה משמאל: Halftone
             halfTex.Bind();
             trans = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, -0.5f, -1.0f));
             model = trans * rot * scl;
@@ -168,7 +173,7 @@ int main(int argc, char* argv[])
             shader.SetUniformMat4f("u_MVP", mvp);
             GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
 
-            /* Bottom-right: Floyd-Steinberg */
+            // למטה מימין: Floyd-Steinberg
             fsTex.Bind();
             trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, -0.5f, -1.0f));
             model = trans * rot * scl;

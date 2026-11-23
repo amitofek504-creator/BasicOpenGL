@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-/* 6a. Noise reduction with a Gaussian filter (slide 5) */
 static GrayImage GaussianBlur(const GrayImage& in)
 {
     GrayImage gaussian;
@@ -24,8 +23,6 @@ static GrayImage GaussianBlur(const GrayImage& in)
     return gaussian;    
 }
 
-/* 6b. Gradient magnitude and direction for every pixel (slides 6-7).
-   magnitude and direction hold one value per pixel, in the same order as GrayImage::pixels. */
 static void ComputeGradients(const GrayImage& in, std::vector<float>& magnitude, std::vector<float>& direction)
 {  
     magnitude = std::vector<float>(in.width * in.height);
@@ -47,7 +44,6 @@ static void ComputeGradients(const GrayImage& in, std::vector<float>& magnitude,
         }
 }
 
-/* 6c. Non-max suppression (slide 8): keep a pixel only if it is the strongest along its gradient direction */
 static std::vector<float> NonMaxSuppression(const std::vector<float>& magnitude, const std::vector<float>& direction,
                                             int width, int height)
 {
@@ -85,24 +81,52 @@ static std::vector<float> NonMaxSuppression(const std::vector<float>& magnitude,
     }
   return suppression;
 }
-/* 6d-1. Double thresholding (slide 9): split the pixels into strong / weak / non-relevant */
 static GrayImage DoubleThreshold(const std::vector<float>& suppressed, int width, int height)
 {
-    // TODO: choose a low and a high threshold, and decide how to mark strong vs weak pixels
-    return {};
+    GrayImage Double;
+    Double.width = width;                                          
+    Double.height = height; 
+    Double.pixels = std::vector<unsigned char>(width * height);    
+    int high = 110;
+    int low = 55;
+    for (size_t i = 0; i < suppressed.size(); i++)
+        if(suppressed[i] >= high)
+            Double.pixels[i] = 255;
+        else if (suppressed[i] < high && suppressed[i] >= low)
+            Double.pixels[i] = 128;
+    return Double;       
 }
 
-/* 6d-2. Hysteresis (slide 10): a weak pixel touching a strong pixel becomes 255, everything else 0 */
 static GrayImage Hysteresis(const GrayImage& thresholded)
 {
-    // TODO
-    return {};
+    GrayImage hysteresis;
+    hysteresis.width = thresholded.width;                                          
+    hysteresis.height = thresholded.height; 
+    hysteresis.pixels = std::vector<unsigned char>(thresholded.width * thresholded.height);
+    for (int row = 0; row < thresholded.height; row++)
+         for (int col = 0; col < thresholded.width; col++){
+            int up    = std::max(row - 1, 0);
+            int down  = std::min(row + 1, thresholded.height - 1);
+            int left  = std::max(col - 1, 0);
+            int right = std::min(col + 1, thresholded.width - 1);
+            if (thresholded.pixels[row * thresholded.width + col] == 255)
+                hysteresis.pixels[row * thresholded.width + col] = 255;
+            else if (thresholded.pixels[row * thresholded.width + col] == 128)
+                    if (thresholded.pixels[up   * thresholded.width + left ] == 255 ||
+                        thresholded.pixels[up   * thresholded.width + col  ] == 255 ||
+                        thresholded.pixels[up   * thresholded.width + right] == 255 ||
+                        thresholded.pixels[row  * thresholded.width + left ] == 255 ||
+                        thresholded.pixels[row  * thresholded.width + right] == 255 ||
+                        thresholded.pixels[down * thresholded.width + left ] == 255 ||
+                        thresholded.pixels[down * thresholded.width + col  ] == 255 ||
+                        thresholded.pixels[down * thresholded.width + right] == 255)
+                        hysteresis.pixels[row * thresholded.width + col] = 255;         
+    }
+    return hysteresis;
 }
 
 GrayImage Canny(const GrayImage& gray)
 {
-    // The stages in order (slide 3).
-    // Tip: save a debug .png after each stage and compare with page 4 of the assignment PDF.
     GrayImage blurred = GaussianBlur(gray);
 
     std::vector<float> magnitude;

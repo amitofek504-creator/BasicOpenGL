@@ -7,8 +7,6 @@
 #include <fstream>
 #include <iostream>
 
-/* ---------- Task 1: infrastructure ---------- */
-
 unsigned char Clip(int value)
 {
     if( value < 0)
@@ -37,8 +35,6 @@ bool SaveTxt(const std::string& path, const GrayImage& img)
     return true;
 }
 
-/* ---------- Task 2: Grayscale ---------- */
-
 GrayImage ToGrayscale(const unsigned char* rgba, int width, int height)
 {
   GrayImage gray;                                              
@@ -55,8 +51,6 @@ GrayImage ToGrayscale(const unsigned char* rgba, int width, int height)
     }
   return gray;
 }
-
-/* ---------- Task 3: Halftone ---------- */
 
 GrayImage Halftone(const GrayImage& gray)
 {
@@ -107,47 +101,44 @@ GrayImage Halftone(const GrayImage& gray)
 
 }
 
-/* ---------- Task 4: Floyd-Steinberg ---------- */
-
 GrayImage FloydSteinberg(const GrayImage& gray)
 {
-   GrayImage FS;
-   FS.width = gray.width;                                          
-   FS.height = gray.height; 
-   FS.pixels = std::vector<unsigned char>(gray.width * gray.height);  
+    GrayImage FS;
+    FS.width = gray.width;
+    FS.height = gray.height;
+    FS.pixels = std::vector<unsigned char>(gray.width * gray.height);
     std::vector<float> tmp(gray.pixels.size());
-   for (size_t i = 0; i < tmp.size(); i++)
-       tmp[i] = gray.pixels[i];
-   for (int row = 0; row < gray.height; row++)
-    for (int col = 0; col < gray.width; col++){
-        float level = Clip(tmp[row * gray.width + col]) / 16;
-        FS.pixels[row * gray.width + col] = 16 * (int)level;
-        bool hasRight = col < gray.width - 1;
-        bool hasDown = row < gray.height - 1;
-        bool hasDownLeft = hasDown && col > 0;
-        bool hasDownRight = hasDown && hasRight;
-        int count = hasRight + hasDownLeft + hasDown + hasDownRight;
-        if (count == 4) {
-        tmp[(row * gray.width + col) +1] += (Clip(tmp[row * gray.width + col]) % 16) * (7.0f/16);
-        tmp[(row * gray.width + col) + gray.width - 1] += (Clip(tmp[row * gray.width + col]) % 16) * (3.0f/16);
-        tmp[(row * gray.width + col) + gray.width] += (Clip(tmp[row * gray.width + col]) % 16) * (5.0f/16);
-        tmp[(row * gray.width + col) + gray.width + 1] += (Clip(tmp[row * gray.width + col]) % 16) * (1.0f/16);
+    for (size_t i = 0; i < tmp.size(); i++)
+        tmp[i] = gray.pixels[i];
+    for (int row = 0; row < gray.height; row++)
+        for (int col = 0; col < gray.width; col++){
+            float level = Clip(tmp[row * gray.width + col]) / 16;
+            FS.pixels[row * gray.width + col] = 16 * (int)level;
+            bool hasRight = col < gray.width - 1;
+            bool hasDown = row < gray.height - 1;
+            bool hasDownLeft = hasDown && col > 0;
+            bool hasDownRight = hasDown && hasRight;
+            int count = hasRight + hasDownLeft + hasDown + hasDownRight;
+            if (count == 4) {
+                tmp[(row * gray.width + col) +1] += (Clip(tmp[row * gray.width + col]) % 16) * (7.0f/16);
+                tmp[(row * gray.width + col) + gray.width - 1] += (Clip(tmp[row * gray.width + col]) % 16) * (3.0f/16);
+                tmp[(row * gray.width + col) + gray.width] += (Clip(tmp[row * gray.width + col]) % 16) * (5.0f/16);
+                tmp[(row * gray.width + col) + gray.width + 1] += (Clip(tmp[row * gray.width + col]) % 16) * (1.0f/16);
+            }
+            else if (count > 0) {
+                float share = (Clip(tmp[row * gray.width + col]) % 16) / (float)count;
+                if (hasRight)
+                    tmp[(row * gray.width + col) +1] += share;
+                if (hasDownLeft)
+                    tmp[(row * gray.width + col) + gray.width - 1] += share;
+                if (hasDown)
+                    tmp[(row * gray.width + col) + gray.width] += share;
+                if (hasDownRight)
+                    tmp[(row * gray.width + col) + gray.width + 1] += share;
+            }
         }
-        else if (count > 0) {
-            float share = (Clip(tmp[row * gray.width + col]) % 16) / (float)count;
-            if (hasRight)
-                tmp[(row * gray.width + col) +1] += share;
-            if (hasDownLeft)
-                tmp[(row * gray.width + col) + gray.width - 1] += share;
-            if (hasDown)
-                tmp[(row * gray.width + col) + gray.width] += share;
-            if (hasDownRight)
-                tmp[(row * gray.width + col) + gray.width + 1] += share;
-        }
-    } 
-    return FS;      
+    return FS;
 }
-/* ---------- Runs everything ---------- */
 
 void RunAssignment(const std::string& inputPath)
 {
@@ -179,9 +170,13 @@ void RunAssignment(const std::string& inputPath)
         FSTxt.pixels[i] = FSTxt.pixels[i] / 16;            
     if (!SaveTxt("../FloyedSteinberg.txt", FSTxt))                  
         std::cout << "Failed to save FloyedSteinberg.txt" << std::endl;
-    // TODO (task 6): Canny           -> Canny.png           + Canny.txt            (values 0-1 in the .txt)
-    //
-    // File names are exactly as written in the assignment ("Haftone.png" is spelled that way there).
-    // The program runs from bin/, so "../" writes the files to the project folder.
+    GrayImage canny = Canny(gray);
+    if (!SavePng("../Canny.png", canny))
+        std::cout << "Failed to save Canny.png" << std::endl;
+    GrayImage cannyTxt = canny;
+    for (size_t i = 0; i < cannyTxt.pixels.size(); i++)
+        cannyTxt.pixels[i] = cannyTxt.pixels[i] / 255;
+    if (!SaveTxt("../Canny.txt", cannyTxt))
+        std::cout << "Failed to save Canny.txt" << std::endl;
      stbi_image_free(rgba);
 }
